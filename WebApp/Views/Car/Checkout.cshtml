@@ -1,0 +1,84 @@
+﻿@using WebApp.Models
+@model CarCheckoutViewModel
+
+<div class="container mt-5">
+    <h2>Checkout</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th style="background-color: #d1d111; color: black;" scope="col">Make</th>
+                <th style="background-color: #d1d111; color: black;" scope="col">Model</th>
+                <th style="background-color: #d1d111; color: black;" scope="col">Year</th>
+                <th style="background-color: #d1d111; color: black;" scope="col">Price Per Day</th>
+                <th style="background-color: #46db6a; color: black;" scope="col">Total Paid</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="background-color: #d1d111; color: black;">@Model.Make</td>
+                <td style="background-color: #d1d111; color: black;">@Model.Model</td>
+                <td style="background-color: #d1d111; color: black;">@Model.Year</td>
+                <td style="background-color: #d1d111; color: black;">@Model.PricePerDay$</td>
+                <td id="totalPaid" style="background-color: #46db6a; color: black;">@Model.PricePerDay$</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form asp-controller="Car" asp-action="SubmitCheckout" method="post" onsubmit="return submitForm()">
+        <div class="form-group">
+            <label for="inputEmail">Customer Email</label>
+            <input type="email" class="form-control" id="inputEmail" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="inputDays">Number of Days</label>
+            <input type="number" class="form-control" id="inputDays" name="days" required min="1" step="1" value="1" oninput="updateTotalPaid()">
+        </div>
+        <br />
+
+        <div class="form-group">
+            <input type="hidden" name="carId" value="@Model.CarId" />
+            <input type="hidden" id="PricePerDay" name="PricePerDay" value="@Model.PricePerDay" />
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <a asp-controller="Car" asp-action="Index" class="btn btn-secondary ml-2">Back</a>
+        </div>
+    </form>
+
+    <script>
+        function updateTotalPaid() {
+            var pricePerDay = parseFloat('@Model.PricePerDay');
+            var numberOfDays = parseFloat(document.getElementById('inputDays').value);
+            var totalPaid = pricePerDay * numberOfDays;
+            document.getElementById('totalPaid').innerText = totalPaid.toFixed(2) + '$';
+        }
+
+        function isValidEmail(email) {
+            var emailRegex = /^[a-zA-Z0-9._-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+            return emailRegex.test(email);
+        }
+
+        function validateForm() {
+            var email = document.getElementById('inputEmail').value;
+            var days = parseFloat(document.getElementById('inputDays').value);
+
+            if (!isValidEmail(email) || days <= 0) {
+                alert("Enter a valid email and a number of days greater than 0.");
+                return false;
+            }
+
+            return true;
+        }
+
+        function submitForm() {
+      
+            if (!validateForm()) {
+                return false;
+            }
+
+            alert("Adding new rent");
+            
+            return true;
+        }
+    </script>
+</div>

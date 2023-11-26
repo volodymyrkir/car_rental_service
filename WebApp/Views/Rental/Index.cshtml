@@ -1,0 +1,57 @@
+﻿@using WebApp.Models
+@model List<Rental>
+<h2 style="text-align: center;">Rental Records</h2>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th class="text-center">ID</th>
+            <th class="text-center">Car ID</th>
+            <th class="text-center">Customer Email</th>
+            <th class="text-center">Rent Start Date</th>
+            <th class="text-center">Rent End Date</th>
+            <th class="text-center">Total Paid</th>
+            <th class="text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var rental in Model)
+        {
+            <tr>
+                <td class="text-center">@rental.Id</td>
+                <td class="text-center">@rental.CarId</td>
+                <td class="text-center">@rental.CustomerMail</td>
+                <td class="text-center">@rental.RentStartDate.ToString("yyyy-MM-dd")</td>
+                <td class="text-center">@rental.RentEndDate.ToString("yyyy-MM-dd")</td>
+                <td class="text-center">@rental.TotalPaid</td>
+                <td class="text-center">
+                    <button class="btn btn-danger" onclick="deleteRecord(@rental.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-4">Back</a>
+
+<script>
+    function deleteRecord(rentalId) {
+        var confirmDelete = confirm("Are you sure you want to delete rental with ID " + rentalId + "?");
+        if (confirmDelete) {
+          
+            deleteRental(rentalId);
+        }
+    }
+
+    function deleteRental(rentalId) {
+        $.ajax({
+            url: '/Rental/Delete',  
+            type: 'POST',
+            data: { id: rentalId },  
+            success: function (result) {
+                window.location.reload();
+            },
+            error: function (error) {
+                console.error('Error deleting rental:', error);
+            }
+        });
+    }
+</script>

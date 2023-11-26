@@ -1,0 +1,23 @@
+﻿@model WebApp.Views.Home.IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="text-center">
+                <h2 class="mb-4">@ViewData["Title"]</h2>
+                <p class="lead">Welcome to the Car Rental Service implemented in ASP.NET!</p>
+
+                <form asp-controller="Home" asp-action="GoToCarIndex" method="post" class="mb-3">
+                    <button type="submit" class="btn btn-primary btn-lg btn-equal">Go to Car Review and Rent</button>
+                </form>
+
+                <form asp-controller="Home" asp-action="GoToRentals" method="post">
+                    <button type="submit" class="btn btn-primary btn-lg btn-equal">Go to Rentals Overview</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

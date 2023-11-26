@@ -1,0 +1,64 @@
+﻿@using WebApp.Models
+@model List<Car>
+<script>
+    function getCarDetails(make, model, year) {
+        $.ajax({
+            url: '@Url.Action("CheckDetails", "Car")',
+            type: 'POST',
+            data: { make: make, model: model, year: year },
+            success: function (result) {
+                if (result) {
+                    var detailsUrl = '@Url.Action("Details", "Car")?make=' + encodeURIComponent(make) + '&model=' + encodeURIComponent(model) + '&year=' + year;
+                    window.location.href = detailsUrl;
+                } else {
+                    alert("Details for this car are not available.");
+                }
+            },
+            error: function () {
+                alert("Error checking details. Please try again.");
+            }
+        });
+    }
+</script>
+<div class="container mt-5">
+    <h2 style="text-align: center;">Available Cars</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th class="text-center" scope="col">Make</th>
+                    <th class="text-center" scope="col">Model</th>
+                    <th class="text-center" scope="col">Year</th>
+                    <th class="text-center" scope="col">Per-day rent price</th>
+                    <th class="text-center" scope="col">Rent the car</th>
+                    <th class="text-center" scope="col">Get details using CarQuery API</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var car in Model)
+                {
+                    <tr>
+                        <td>@car.Make</td>
+                        <td>@car.Model</td>
+                        <td>@car.Year</td>
+                        <td style="background-color: #ffffcc;color: black">@string.Format("{0:C}", car.PricePerDay)</td>
+                        <td class="text-center">
+                            @if (car.IsAvailable)
+                            {
+                                <a href="@Url.Action("Rent", "Car", new { carId = car.Id })" class="btn btn-success text-center">Rent</a>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Not Available</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-info text-center" onclick="getCarDetails('@car.Make', '@car.Model', @car.Year)">Get Details</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-4">Back</a>

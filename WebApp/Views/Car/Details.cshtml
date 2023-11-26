@@ -1,0 +1,26 @@
+﻿@using WebApp.Models
+@model CarDetailsViewModel
+
+<div class="container text-center">
+    <h2 class="my-4">Details for @Model.Make @Model.Model of year @Model.Year</h2>
+
+    <table class="table table-bordered table-striped" style="background-color: #3895c7;">
+        <thead>
+            <tr>
+                <th scope="col">Field</th>
+                <th scope="col">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var detail in Model.Details)
+            {
+                <tr>
+                    <td>@detail.Key</td>
+                    <td>@detail.Value</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-controller="Car" asp-action="Index" class="btn btn-primary mt-4">Back</a>
+</div>
