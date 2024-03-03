@@ -1,34 +1,35 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WebApp.Models;
+
+using WebApp.Data;
 
 namespace WebApp.Controllers
 {
-    public class RentalController : BaseController
+    public class RentalController : Controller
     {
-        private List<Rental> _rentals;
-         
+        private readonly RentalContext _context;
 
-        public RentalController()
+        public RentalController(RentalContext context)
         {
-           UpdateData();
-            _rentals = LoadRentsFromCsv("rents.csv");
+            _context = context;
         }
-        
-        
+
         [HttpPost]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                string filePath = "rents.csv";
-                var lines = System.IO.File.ReadAllLines(filePath);
-
-                var updatedLines = lines.Where(line =>
+                var rentalToDelete = await _context.Rentals.FindAsync(id);
+                
+                if (rentalToDelete == null)
                 {
-                    var values = line.Split(',');
-                    return values.Length >= 1 && int.TryParse(values[0], out var currentId) && currentId != id;
-                });
-                SaveRentsToCsv(updatedLines, filePath);
+                    return Json(new { success = false, message = "Rental not found" });
+                }
+
+                var rentalCar = await _context.Cars.FindAsync(rentalToDelete.CarId);
+                rentalCar.IsAvailable = true;
+                _context.Rentals.Remove(rentalToDelete);
+                await _context.SaveChangesAsync();
+
                 return Json(new { success = true, message = "Rental deleted successfully" });
             }
             catch (Exception ex)
@@ -37,10 +38,12 @@ namespace WebApp.Controllers
                 return Json(new { success = false, message = "Error deleting rental" });
             }
         }
+
         [HttpGet]
         public IActionResult Index()
         {
-            return View(_rentals);
+            var rentals = _context.Rentals.ToList();
+            return View(rentals);
         }
 
     }
