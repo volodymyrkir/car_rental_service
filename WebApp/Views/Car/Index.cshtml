@@ -32,6 +32,7 @@
                     <th class="text-center" scope="col">Per-day rent price</th>
                     <th class="text-center" scope="col">Rent the car</th>
                     <th class="text-center" scope="col">Get details using CarQuery API</th>
+                    <th class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,10 +56,82 @@
                         <td class="text-center">
                             <button class="btn btn-info text-center" onclick="getCarDetails('@car.Make', '@car.Model', @car.Year)">Get Details</button>
                         </td>
+                        <td class="text-center">
+                            <button class="btn btn-danger" onclick="deleteRecord(@car.Id)">Delete</button>
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+    <h2 style="text-align: center;">Add New Car</h2>
+    <form id="addCarForm" class="mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="make" placeholder="Make" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="model" placeholder="Model" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control" id="year" placeholder="Year" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control" id="pricePerDay" placeholder="Per-day rent price" required min="1" step="0.01">
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary mt-2" onclick="addNewCar()">Add Car</button>
+    </form>
 </div>
+
 <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-4">Back</a>
+
+<script>
+    
+    function addNewCar() {
+        var make = $('#make').val();
+        var model = $('#model').val();
+        var year = $('#year').val();
+        var pricePerDay = $('#pricePerDay').val();
+
+        $.ajax({
+            url: '/Car/Add',
+            type: 'POST',
+            data: {
+                make: make,
+                model: model,
+                year: year,
+                pricePerDay: pricePerDay
+            },
+            success: function (result) {
+                console.log('New car added successfully');
+                window.location.reload();
+            },
+            error: function (error) {
+                console.error('Error adding new car:', error);
+            }
+        });
+    }
+
+    function deleteRecord(carId) {
+        var confirmDelete = confirm("Are you sure you want to delete car with ID " + carId + "?");
+        if (confirmDelete) {
+
+            deleteCar(carId);
+        }
+    }
+
+    function deleteCar(carId) {
+        $.ajax({
+            url: '/Car/Delete',
+            type: 'POST',
+            data: { id: carId },
+            success: function (result) {
+                window.location.reload();
+            },
+            error: function (error) {
+                console.error('Error deleting rental:', error);
+            }
+        });
+    }
+</script>

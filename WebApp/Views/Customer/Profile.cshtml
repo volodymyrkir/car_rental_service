@@ -1,0 +1,47 @@
+﻿@using WebApp.Models
+@model CustomerProfileViewModel
+
+<div class="profile-container">
+    <div style="text-align: center;">
+        <h2>Customer Profile</h2>
+    </div>
+
+    <div style="text-align: center;">
+        <img src="~/css/customer.png" alt="Customer Image" style="max-width: 35%; border-radius: 10px; margin-bottom: 20px; display: inline-block;">
+    </div>
+
+    <div class="email-section">
+        <p>Email: @Model.CustomerEmail</p>
+    </div>
+   
+    <br/>
+    <h3>Rentals</h3>
+    <table class="rentals-table">
+        <thead>
+            <tr>
+                <th>Rental ID</th>
+                <th>From date</th>
+                <th>To date</th>
+                <th>Paid</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rental in Model.Rentals)
+            {
+                <tr>
+                    <td>@rental.Id</td>
+                    <td>@rental.RentStartDate</td>
+                    <td>@rental.RentEndDate</td>
+                    <td>@rental.TotalPaid</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="total-paid-section">
+        <h3>Total Amount Paid</h3>
+        <p>@Model.TotalAmountPaid.ToString("C")</p>
+    </div>
+
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-4">Back</a>
+</div>

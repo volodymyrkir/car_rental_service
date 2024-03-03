@@ -11,11 +11,15 @@
                 <p class="lead">Welcome to the Car Rental Service implemented in ASP.NET!</p>
 
                 <form asp-controller="Home" asp-action="GoToCarIndex" method="post" class="mb-3">
-                    <button type="submit" class="btn btn-primary btn-lg btn-equal">Go to Car Review and Rent</button>
+                    <button type="submit" class="btn btn-primary btn-lg btn-equal">Car Review and Rent</button>
                 </form>
 
                 <form asp-controller="Home" asp-action="GoToRentals" method="post">
-                    <button type="submit" class="btn btn-primary btn-lg btn-equal">Go to Rentals Overview</button>
+                    <button type="submit" class="btn btn-primary btn-lg btn-equal">Rentals Overview</button>
+                </form>
+                <br/>
+                <form asp-controller="Home" asp-action="GoToCustomers" method="post">
+                    <button type="submit" class="btn btn-primary btn-lg btn-equal">Customers</button>
                 </form>
             </div>
         </div>

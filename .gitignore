@@ -1,1 +1,6 @@
 .vs/
+*bin*
+*Migrations/
+*.db
+*Debug
+WebApp/obj/

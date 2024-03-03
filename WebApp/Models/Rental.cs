@@ -1,7 +1,10 @@
-﻿namespace WebApp.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebApp.Models
 {
     public class Rental
     {
+        [Key]
         public int Id { get; set; }
         public int CarId { get; set; }
         public string CustomerMail { get; set; }

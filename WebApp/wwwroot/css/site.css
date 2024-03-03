@@ -43,3 +43,50 @@ h1, h2, h3, p, thead, tr, td, tbody {
     height: 60px;
     width: 500px;
 }
+
+.profile-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.rentals-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+    .rentals-table th {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+        background-color: #f55442;
+    }
+
+    .rentals-table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+        background-color: #f56642;
+    }
+
+.total-paid-section {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.email-section {
+    background-color: #f55442;
+    color: black;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 20px;
+    text-align: center;
+}

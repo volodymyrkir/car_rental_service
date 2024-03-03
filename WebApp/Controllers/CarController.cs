@@ -1,128 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
+using WebApp.Data;
 using WebApp.Models;
 
 namespace WebApp.Controllers
 {
-    public class CarController : BaseController
+    public class CarController : Controller
     {
-        private List<Car> _cars;
+        private readonly RentalContext _context;
         private readonly HttpClient _httpClient;
-        
+        private List<Car> _cars;
 
-        public CarController(IHttpClientFactory httpClientFactory)
+        public CarController(RentalContext context, IHttpClientFactory httpClientFactory)
         {
-            UpdateData();
+            _context = context;
             _httpClient = httpClientFactory.CreateClient();
-            _cars = LoadCarsFromCsv("cars.csv", "rents.csv");
-        {
-            
-            
-        };
-        }
-        private List<Car> LoadCarsFromCsv(string carsFilePath, string rentsFilePath)
-        {
-            var cars = new List<Car>();
 
-            try
-            {
-                
-                var carLines = System.IO.File.ReadAllLines(carsFilePath);
-
-             
-                var rentedCarIds = new HashSet<int>();
-
-                
-                if (System.IO.File.Exists(rentsFilePath))
-                {
-                    var rentLines = System.IO.File.ReadAllLines(rentsFilePath);
-                    foreach (var rentLine in rentLines)
-                    {
-                        var rentValues = rentLine.Split(',');
-
-                        if (rentValues.Length >= 2 && int.TryParse(rentValues[1], out var rentedCarId))
-                        {
-                            rentedCarIds.Add(rentedCarId);
-                        }
-                    }
-                }
-
-              
-                foreach (var carLine in carLines)
-                {
-                    var values = carLine.Split(',');
-
-                    if (values.Length == 5 &&
-                        int.TryParse(values[0], out var id) &&
-                        int.TryParse(values[3], out var year) &&
-                        double.TryParse(values[4], out var pricePerDay))
-                    {
-                        cars.Add(new Car
-                        {
-                            Id = id,
-                            Make = values[1],
-                            Model = values[2],
-                            Year = year,
-                            PricePerDay = pricePerDay,
-                            IsAvailable = !rentedCarIds.Contains(id)
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return cars;
-        }
-        public IActionResult Details(string make, string model, int year)
-        {
-            var details = GetCarDetailsFromApiAsync(make, model, year).Result;
-
-            if (details != null)
-            {
-                var carDetailsViewModel = new CarDetailsViewModel
-                {
-                    Make = make,
-                    Model = model,
-                    Year = year,
-                    Details = details
-                };
-
-                return View(carDetailsViewModel);
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Details for this car are not available.";
-                return RedirectToAction("Index");
-            }
-        }
-        private async Task<Dictionary<string, object>?> GetCarDetailsFromApiAsync(string make, string model, int year)
-        {
-            var apiUrl = $"https://www.carqueryapi.com/api/0.3/?cmd=getTrims&make={make}&model={model}&year={year}";
-            var apiResponse = await _httpClient.GetStringAsync(apiUrl);
-            var responseObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(apiResponse);
-
-          
-            if (responseObj.TryGetValue("Trims", out var trims) && trims is JArray trimsArray)
-            {
-                
-                var firstTrim = trimsArray.FirstOrDefault();
-
-                return firstTrim?.ToObject<Dictionary<string, object>>();
-            }
-
-            return null;
+            _cars = _context.Cars.ToList();
         }
 
-        [HttpPost]
-        public JsonResult CheckDetails(string make, string model, int year)
-        {
-            var details = GetCarDetailsFromApiAsync(make, model, year).Result;
-            return Json(details != null && details.Count != 0);
-        }
         public IActionResult Rent(int carId)
         {
             var selectedCar = _cars.FirstOrDefault(car => car.Id == carId);
@@ -145,23 +43,97 @@ namespace WebApp.Controllers
             return RedirectToAction("Index");
         }
 
+        public IActionResult Details(string make, string model, int year)
+        {
+            var details = GetCarDetailsFromApiAsync(make, model, year).Result;
+
+            if (details != null)
+            {
+                var carDetailsViewModel = new CarDetailsViewModel
+                {
+                    Make = make,
+                    Model = model,
+                    Year = year,
+                    Details = details
+                };
+
+                return View(carDetailsViewModel);
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Details for this car are not available.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        private async Task<Dictionary<string, object>?> GetCarDetailsFromApiAsync(string make, string model, int year)
+        {
+            var apiUrl = $"https://www.carqueryapi.com/api/0.3/?cmd=getTrims&make={make}&model={model}&year={year}";
+            var apiResponse = await _httpClient.GetStringAsync(apiUrl);
+            var responseObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(apiResponse);
+
+            if (responseObj.TryGetValue("Trims", out var trims) && trims is JArray trimsArray)
+            {
+                var firstTrim = trimsArray.FirstOrDefault();
+
+                return firstTrim?.ToObject<Dictionary<string, object>>();
+            }
+
+            return null;
+        }
+
         [HttpPost]
-        public IActionResult SubmitCheckout(string email, int carId, int days, decimal PricePerDay)
+        public JsonResult CheckDetails(string make, string model, int year)
+        {
+            var details = GetCarDetailsFromApiAsync(make, model, year).Result;
+            return Json(details != null && details.Count != 0);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitCheckout(string email, int carId, string fullname, int days, decimal PricePerDay)
         {
             try
             {
-                var filePath = "rents.csv";
-                var lines = System.IO.File.ReadAllLines(filePath);
+        
+                var existingUser = _context.Customers.FirstOrDefault(u => u.Email == email);
 
-                int rentId = lines.Length > 1 ? int.Parse(lines.Last().Split(',')[0]) + 1 : 1;
+                if (existingUser == null)
+                {
+                    var newUser = new Customer
+                    {
+                        Email = email,
+                        FullName = fullname,
+                    };
+
+                    _context.Customers.Add(newUser);
+                    await _context.SaveChangesAsync();
+                }
+
+                var selectedCar = _cars.FirstOrDefault(car => car.Id == carId);
+                if (selectedCar == null)
+                {
+                    TempData["ErrorMessage"] = "Selected car not found.";
+                    return RedirectToAction("Index");
+                }
+
                 decimal totalPaid = PricePerDay * days;
 
-                string rentStartDate = DateTime.Now.ToString("dd.MM.yyyy");
-                string rentEndDate = DateTime.Now.AddDays(days).ToString("dd.MM.yyyy");
-                var newLine = $"{rentId},{carId},{email},{rentStartDate},{rentEndDate},{totalPaid}";
-                System.IO.File.AppendAllLines(filePath, new[] { newLine });
+                string rentStartDate = DateTime.Now.ToString("yyyy-MM-dd");
+                string rentEndDate = DateTime.Now.AddDays(days).ToString("yyyy-MM-dd");
 
-                Console.WriteLine($"Rent added to CSV: {newLine}");
+                var rental = new Rental
+                {
+                    CarId = carId,
+                    CustomerMail = email,
+                    RentStartDate = DateTime.Parse(rentStartDate),
+                    RentEndDate = DateTime.Parse(rentEndDate),
+                    TotalPaid = (double)totalPaid
+                };
+
+                _context.Rentals.Add(rental);
+                selectedCar.IsAvailable = false;
+                await _context.SaveChangesAsync();
+
                 TempData["RentAdded"] = true;
                 return RedirectToAction("Index");
             }
@@ -172,15 +144,70 @@ namespace WebApp.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var car = await _context.Cars.FindAsync(id);
+
+                if (car == null)
+                {
+                    return Json(new { success = false, message = "Car not found" });
+                }
+                _context.Cars.Remove(car);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Car deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting Car: {ex.Message}");
+                return Json(new { success = false, message = "Error deleting Car" });
+            }
+        }
+        [HttpPost]
+        public IActionResult Add(string make, string model, int year, string pricePerDay)
+        {
+            try
+            {
+                if (double.TryParse(pricePerDay, NumberStyles.Number, CultureInfo.InvariantCulture, out double parsedPricePerDay))
+                {
+                    var newCar = new Car
+                    {
+                        Make = make,
+                        Model = model,
+                        Year = year,
+                        PricePerDay = parsedPricePerDay,
+                        IsAvailable = true
+                    };
+
+                    _context.Cars.Add(newCar);
+                    _context.SaveChanges();
+
+                    return Json(new { success = true, message = "Car added successfully" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Invalid price per day format" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding new car: {ex.Message}");
+                return Json(new { success = false, message = "Error adding new car" });
+            }
+        }
+
         public IActionResult Privacy()
         {
             return View();
         }
+
         [HttpGet]
         public IActionResult Index()
         {
             return View(_cars);
         }
-
     }
 }

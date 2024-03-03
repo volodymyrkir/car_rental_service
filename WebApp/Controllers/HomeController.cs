@@ -21,5 +21,9 @@ namespace WebApp.Controllers
         {
             return RedirectToAction("Index", "Rental");
         }
+        public IActionResult GoToCustomers()
+        {
+            return RedirectToAction("Index", "Customer");
+        }
     }
 }
